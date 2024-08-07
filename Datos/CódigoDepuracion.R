@@ -18,3 +18,8 @@ datos <- datos %>%
       !pplfair %in% codigos_a_eliminar &
       !pplhlp %in% codigos_a_eliminar
   )
+
+
+# Código de R para guardar los nuevos datos
+
+write.csv(datos, "datos_depurados.csv", row.names = FALSE)
