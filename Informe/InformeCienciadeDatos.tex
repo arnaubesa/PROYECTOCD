@@ -1,0 +1,45 @@
+\documentclass{article}
+\usepackage{blindtext}
+\usepackage{multicol}
+\usepackage{amsmath}
+
+\usepackage[spanish.sty]{babel}
+\usepackage[T1]{fontenc}
+
+\usepackage{geometry}
+  \geometry{
+  a4paper,
+  total={170mm,257mm},
+  left=20mm,
+  top=20mm,
+  }
+  
+  
+\usepackage{Sweave}
+\begin{document}
+\input{InformeCienciadeDatos-concordance}
+
+
+\section*{Primeros pasos}
+
+\begin{itemsize}
+\item Instalar knitr si fuese necesario
+\item Instalar una distribución de LaTex: tinytex
+\item Instalar paquetes de LaTex mediante tinytex
+\end{itemsize}
+
+
+\begin{Schunk}
+\begin{Sinput}
+> if(!require(tinytex)){
++   install.packages('tinytex')
++   library(tinytex)
++ }
+\end{Sinput}
+\end{Schunk}
+
+
+
+
+
+\end{document}
