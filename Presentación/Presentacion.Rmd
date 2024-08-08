@@ -1,0 +1,14 @@
+---
+title: "Proyecto de Ciencia de Datos"
+author: "Arnau Bertran"
+date: "2024-08-08"
+output: ioslides_presentation
+  
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Tabla resumen
+
+A continuación se presenta una tabla con un resumen de los contenidos presentes en los datos que se han utilizado a lo largo del proyecto:

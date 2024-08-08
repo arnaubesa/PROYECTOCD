@@ -74,6 +74,8 @@ datos <- datos %>%
   )
 
 
+correlacion <- cor(datos$tvpol, datos$Confianza, use = "complete.obs", method = "pearson")
+
 ```
 
 Gráficos {data-icon="fa-signal"}
@@ -252,12 +254,7 @@ A través de análisis de correlación.
 
 Para entender mejor la relación entre el tiempo dedicado a ver televisión política (`tvpol`) y la confianza en la buena fe de la gente (`Confianza`), se ha calculado el coeficiente de correlación de Pearson. 
 
-Como resultado obtenemos el siguiente:
-```{r correlation}
-correlacion <- cor(datos$tvpol, datos$Confianza, use = "complete.obs", method = "pearson")
-correlacion
-```
-
-Esto no indica una correlación muy débil entre las dos variables, lo que nos dice que hay muy poca o ninguna relación lineal entre el tiempo que se miran notícias en la televisión y la confianza que se tiene en la gente. 
+Como resultado obtenemos **`r correlacion <- cor(datos$tvpol, datos$Confianza, use = "complete.obs", method = "pearson")
+correlacion`**, esto nos indica una correlación muy débil entre las dos variables, lo que nos dice que hay muy poca o ninguna relación lineal entre el tiempo que se miran notícias en la televisión y la confianza que se tiene en la gente. 
 
 Este tipo de relaciones entre las variables son las que podemos observar en los diferentes gráficos expuestos en apartados anteriores. Así como una representación gráfica de la distribución de las medias de consumo de noticías en televisión en los diferentes países europeos. 
