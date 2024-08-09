@@ -6,9 +6,75 @@ output: ioslides_presentation
   
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 ## Tabla resumen
 
-A continuación se presenta una tabla con un resumen de los contenidos presentes en los datos que se han utilizado a lo largo del proyecto:
+A continuación se presenta una tabla con un resumen aleatorio de los contenidos presentes y utilizados en los datos que se han utilizado a lo largo del proyecto:
+
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+datos <- read.csv("datos_depurados.csv")
+
+# Seleccionar 5 filas aleatorias de la base de datos `datos`
+set.seed(123)  # Establecer una semilla para reproducibilidad
+datos_muestra <- datos %>%
+  sample_n(5) %>%  # Seleccionar 5 filas aleatorias
+  select(idno, cntry, tvtot, tvpol, ppltrst, pplfair, pplhlp)  # Seleccionar columnas especificadas
+
+# Mostrar la tabla con formato
+datos_muestra %>%
+  kable("html", 
+        caption = "Muestra aleatoria de datos",
+        col.names = c("ID", "País", "Total TV (frec)", "TV Política (frec)", "Confianza", "Justicia", "Ayuda"),  # Nombres de columnas
+        align = "c",  # Centrar texto en las columnas
+        digits = 2) %>%  # Número de decimales
+  kable_styling("striped", 
+                full_width = FALSE, 
+                position = "center") %>%  # Estilo a rayas y centrar la tabla
+  scroll_box(width = "100%", height = "300px")  # Agregar scroll y ajustar tamaño
+```
+
+
+
+## Gráfico principales resultados
+
+Este gráfico muestra la primera relación que se ha analizado. En este caso, el tiempo que se consumen noticias en la televisión y la confianza que se tiene en la gente.
+
+```{r fig.width=6, fig.height=4}
+
+library(ggplot2)
+datos <- read.csv("datos_depurados.csv")
+
+# Crear un gráfico de densidad bidimensional
+ggplot(datos, aes(x = ppltrst, fill = factor(tvpol))) +
+  geom_density(alpha = 0.6) +
+  labs(x = "Confianza en la gente (ppltrst)",
+       y = "Densidad",
+       fill = "Tiempo de noticias en TV (tvpol)") +
+  theme_minimal() +
+  theme(
+    legend.title = element_text(size = 8),   # Tamaño del título de la leyenda
+    legend.text = element_text(size = 7),    # Tamaño del texto de la leyenda
+    legend.key.size = unit(0.6, "cm")        # Tamaño de las claves de la leyenda
+  )
+```
+
+
+## Acerca del estudio
+
+
+<p style="font-size: 20px;">En este estudio, se han analizado las relaciones entre el tiempo que se consume la televisión, más en concreto contenido
+político o de notícias, con medidas de confianza en la gente, en su sentido de la justícia y su capacidad de ayudar a otras personas.</p>
+
+
+<p style="font-size: 20px;">Para entender mejor la relación entre el tiempo dedicado a ver televisión política (`tvpol`) y la confianza en la buena fe de la gente (`Confianza`), se ha calculado el coeficiente de correlación de Pearson. </p>
+
+<p style="font-size: 20px;">
+Como resultado obtenemos **`r cor(datos$tvpol, datos$ppltrst, use = "complete.obs", method = "pearson")`**, esto nos indica una correlación muy débil entre las dos variables, lo que nos dice que hay muy poca o ninguna relación lineal entre el tiempo que se miran noticias en la televisión y la confianza que se tiene en la gente.
+</p>
+
+<p style="font-size: 20px;">Este tipo de relaciones entre las variables son las que podemos observar en los diferentes gráficos expuestos en apartados anteriores. Así como una representación gráfica de la distribución de las medias de consumo de noticías en televisión en los diferentes países europeos. </p>

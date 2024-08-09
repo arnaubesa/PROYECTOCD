@@ -1,0 +1,261 @@
+---
+title: "Dashboard Ciencia de Datos Reto 2"
+author: "Arnau Bertran"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(maps)
+library(DT)
+library(lorem)
+library(shiny)
+```
+
+```{r}
+datos <- read.csv('datos_depurados.csv')
+
+datos <- datos %>%
+  mutate(cntry = recode(cntry,
+                        "AL" = "Albania",
+                        "AT" = "Austria",
+                        "BE" = "Belgium",
+                        "BG" = "Bulgaria",
+                        "CH" = "Switzerland",
+                        "CY" = "Cyprus",
+                        "CZ" = "Czechia",
+                        "DE" = "Germany",
+                        "DK" = "Denmark",
+                        "EE" = "Estonia",
+                        "ES" = "Spain",
+                        "FI" = "Finland",
+                        "FR" = "France",
+                        "GB" = "United Kingdom",
+                        "GE" = "Georgia",
+                        "GR" = "Greece",
+                        "HR" = "Croatia",
+                        "HU" = "Hungary",
+                        "IE" = "Ireland",
+                        "IS" = "Iceland",
+                        "IL" = "Israel",
+                        "IT" = "Italy",
+                        "LT" = "Lithuania",
+                        "LU" = "Luxembourg",
+                        "LV" = "Latvia",
+                        "ME" = "Montenegro",
+                        "MK" = "North Macedonia",
+                        "NL" = "Netherlands",
+                        "NO" = "Norway",
+                        "PL" = "Poland",
+                        "PT" = "Portugal",
+                        "RO" = "Romania",
+                        "RS" = "Serbia",
+                        "RU" = "Russian Federation",
+                        "SE" = "Sweden",
+                        "SI" = "Slovenia",
+                        "SK" = "Slovakia",
+                        "TR" = "Turkey",
+                        "UA" = "Ukraine",
+                        "XK" = "Kosovo")
+
+)
+
+datos <- datos %>%
+  rename(
+    Confianza = ppltrst,
+    Justicia = pplfair,
+    Ayuda = pplhlp
+  )
+
+
+correlacion <- cor(datos$tvpol, datos$Confianza, use = "complete.obs", method = "pearson")
+
+```
+
+Gráficos {data-icon="fa-signal"}
+=======================================================================
+
+Column {.sidebar data-height=150}
+-----------------------------------------------------------------------
+
+```{r}
+
+selectInput("tipo_ppl",label='Tipo de variable', choices = c('Confianza', 'Justicia', 'Ayuda'),selected='ppltrst',width = '200px')
+selectInput("pais_sel",label='Selecciona un país', choices =
+unique(datos$cntry),selected='Albania',width='200px'
+)
+```
+
+
+
+
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+### Relación consumo notícias televisión y `r reactive(input$tipo_ppl)`
+
+```{r}
+
+renderPlot({
+  # Determinar qué columna usar para el eje x
+  columna_x <- switch(input$tipo_ppl,
+                      "Confianza" = "Confianza",
+                      "Justicia" = "Justicia",
+                      "Ayuda" = "Ayuda")
+
+  # Filtrar los datos en función de la columna seleccionada
+  datos_filtrados <- datos %>%
+    filter(!is.na(.data[[columna_x]]))  # Eliminar NA si es necesario
+
+  # Crear el gráfico con la columna seleccionada
+  ggplot(datos_filtrados, aes(x = .data[[columna_x]], fill = factor(tvpol))) +
+    geom_density(alpha = 0.6) +
+    labs(x = paste("Confianza en la gente (", columna_x, ")", sep = ""),
+         y = "Densidad",
+         fill = "Tiempo de noticias en TV (tvpol)") +
+    theme_minimal() +
+    theme(
+      legend.title = element_text(size = 8),   # Tamaño del título de la leyenda
+      legend.text = element_text(size = 7),    # Tamaño del texto de la leyenda
+      legend.key.size = unit(0.6, "cm")        # Tamaño de las claves de la leyenda
+    )
+})
+
+
+```
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Notícias en la televisión por país
+
+```{r}
+# Instalar y cargar las librerías necesarias
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("maps")
+
+library(dplyr)
+library(ggplot2)
+library(maps)
+
+# Calcular la media de tvpol por país
+avg_time_per_country <- datos %>%
+  group_by(cntry) %>%
+  summarise(mean_tvpol = mean(tvpol, na.rm = TRUE)) %>%
+  arrange(desc(mean_tvpol))
+
+
+
+world_map <- map_data("world")
+europa_paises <- world_map %>%
+  filter(region %in% c("Spain", "France", "Germany", "Italy", "United Kingdom", 
+                       "Netherlands", "Belgium", "Portugal", "Greece", 
+                       "Sweden", "Norway", "Denmark", "Finland", "Ireland", 
+                       "Austria", "Switzerland", "Poland", "Czech Republic", 
+                       "Hungary", "Slovakia", "Slovenia", "Croatia", 
+                       "Bosnia and Herzegovina", "Serbia", "Montenegro", 
+                       "Albania", "North Macedonia", "Bulgaria", "Romania", 
+                       "Moldova", "Ukraine", "Belarus", "Lithuania", "Latvia", 
+                       "Estonia", "Russia"))
+
+# Supongamos que `avg_time_per_country` es un data frame con la media de `tvpol` por país
+# Ejemplo:
+# avg_time_per_country <- data.frame(cntry = c("Spain", "France", ...),
+#                                    mean_tvpol = c(3.2, 4.1, ...))
+
+# Renombrar la columna `region` para que coincida con los nombres de los países en `avg_time_per_country`
+colnames(europa_paises)[which(names(europa_paises) == "region")] <- "cntry"
+
+# Combinar los datos del mapa con los datos de `tvpol`
+map_data <- left_join(europa_paises, avg_time_per_country, by = "cntry")
+
+# Crear el gráfico del mapa centrado en Europa
+ggplot(map_data, aes(x = long, y = lat, group = group, fill = mean_tvpol)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient(low = "lightblue", high = "darkblue", na.value = "grey50") +
+  labs(fill = "Media de tvpol", title = "Distribución de Media de TVPOL en Europa") +
+  theme_void() +
+  theme(legend.position = "right") +
+  coord_quickmap(xlim = c(-25, 45), ylim = c(35, 70))  # Limitar la vista a Europa
+
+
+```
+
+### Notícias en la televisión `r reactive(input$pais_sel)`
+
+```{r}
+library(shiny)
+library(ggplot2)
+library(dplyr)
+library(RColorBrewer)  # Para la paleta de colores
+
+renderPlot({
+  # Determinar el país seleccionado a través del filtro
+  pais_seleccionado <- input$pais_sel
+  
+  # Filtrar los datos en función del país seleccionado
+  datos_filtrados <- datos %>%
+    filter(cntry == pais_seleccionado)
+  
+  # Crear el gráfico de barras
+  ggplot(data = datos_filtrados,
+         aes(x = factor(tvpol, levels = 0:7, labels = c("Nada", "30 min", "30-60 min", "60-90 min", "90-120 min", "120-150 min", "150-180 min", "Más de 180 min")),
+             fill = factor(tvpol, levels = 0:7, labels = c("Nada", "30 min", "30-60 min", "60-90 min", "90-120 min", "120-150 min", "150-180 min", "Más de 180 min")))) +
+    geom_bar(color = "black", alpha = 0.7) +
+    scale_fill_brewer(palette = "Blues", guide = "none") +  # Eliminar la leyenda
+    labs(x = "Categorías de tiempo viendo noticias",
+         y = "Frecuencia") +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),  # Rotar las etiquetas del eje x
+      axis.title.x = element_text(size = 12),             # Tamaño del título del eje x
+      axis.title.y = element_text(size = 12),             # Tamaño del título del eje y
+      legend.position = "none"                            # Asegurar que la leyenda esté oculta
+    )
+})
+
+
+
+```
+
+
+Tablas {data-icon="fa-table"}
+=======================================================================
+
+```{r}
+datatable(datos,
+          caption = 'Datos Media and Social Trust',
+          rownames = T,
+          filter = 'top',
+          options = list(pageLength = 25))
+```
+
+
+Acerca del estudio {data-icon="fa-globe"}
+=======================================================================
+
+Inputs {.sidebar data-height=600}
+-----------------------------------------------------------------------
+
+**Análisis Media and Social Trust**
+
+En este estudio, se han analizado las relaciones entre el tiempo que se consume la televisión, más en concreto contenido
+político o de notícias, con medidas de confianza en la gente, en su sentido de la justícia y su capacidad de ayudar a otras personas.
+
+A través de análisis de correlación.
+
+Para entender mejor la relación entre el tiempo dedicado a ver televisión política (`tvpol`) y la confianza en la buena fe de la gente (`Confianza`), se ha calculado el coeficiente de correlación de Pearson. 
+
+Como resultado obtenemos **`r correlacion <- cor(datos$tvpol, datos$Confianza, use = "complete.obs", method = "pearson")
+correlacion`**, esto nos indica una correlación muy débil entre las dos variables, lo que nos dice que hay muy poca o ninguna relación lineal entre el tiempo que se miran notícias en la televisión y la confianza que se tiene en la gente. 
+
+Este tipo de relaciones entre las variables son las que podemos observar en los diferentes gráficos expuestos en apartados anteriores. Así como una representación gráfica de la distribución de las medias de consumo de noticías en televisión en los diferentes países europeos. 
