@@ -16,6 +16,7 @@ library(tidyverse)
 library(maps)
 library(DT)
 library(lorem)
+library(shiny)
 ```
 
 ```{r}

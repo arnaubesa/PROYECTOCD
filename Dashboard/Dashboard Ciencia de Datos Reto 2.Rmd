@@ -16,6 +16,7 @@ library(tidyverse)
 library(maps)
 library(DT)
 library(lorem)
+library(shiny)
 ```
 
 ```{r}
@@ -137,10 +138,7 @@ Column {data-width=450}
 ### Notícias en la televisión por país
 
 ```{r}
-# Instalar y cargar las librerías necesarias
-install.packages("dplyr")
-install.packages("ggplot2")
-install.packages("maps")
+
 
 library(dplyr)
 library(ggplot2)
